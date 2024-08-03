@@ -18,7 +18,7 @@ class Repository(
     private val apiService = ApiClient.apiService
 
     fun getTodayContacts(): Flow<UiState<List<Contact>>> = flow {
-        emit(UiState.Idle)
+        emit(UiState.Complete)
 
         try {
             val contacts = apiService.getTodayContacts().body()
@@ -47,7 +47,8 @@ class Repository(
             ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
                 .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
                 .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-                .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, contact.firstName)
+                .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME,
+                    "${contact.firstName} ${contact.lastName}")
                 .build())
 
             ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)

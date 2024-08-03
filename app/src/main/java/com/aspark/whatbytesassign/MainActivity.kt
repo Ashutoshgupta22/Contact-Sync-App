@@ -2,6 +2,7 @@ package com.aspark.whatbytesassign
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -39,11 +40,17 @@ class MainActivity : ComponentActivity() {
             WhatBytesAssignTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 
+                    val context = LocalContext.current
+                    val permissions = arrayOf(
+                        Manifest.permission.READ_CONTACTS,
+                        Manifest.permission.WRITE_CONTACTS
+                    )
+
+                    if (checkPermissions(permissions, context))
+                        HomeScreen(modifier = Modifier.padding(innerPadding))
+
                     PermissionHandler(
-                        permissions = arrayOf(
-                            Manifest.permission.READ_CONTACTS,
-                            Manifest.permission.WRITE_CONTACTS
-                        ),
+                        permissions = permissions,
                         rationale = "Contact permissions are needed to sync contacts.",
                         onPermissionResult = { granted ->
                             if (granted) {
@@ -81,14 +88,8 @@ fun PermissionHandler(
         onPermissionResult(allGranted)
     }
 
-    fun checkPermissions(): Boolean {
-        return permissions.all {
-            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
-        }
-    }
-
     fun checkAndRequestPermissions() {
-        permissionsGranted = checkPermissions()
+        permissionsGranted = checkPermissions(permissions, context)
         if (!permissionsGranted) {
             showRationale = permissions.any {
                 ActivityCompat.shouldShowRequestPermissionRationale(context as Activity, it)
@@ -100,7 +101,7 @@ fun PermissionHandler(
     }
 
     DisposableEffect(permissions) {
-        if (!checkPermissions()) {
+        if (!checkPermissions(permissions, context)) {
             checkAndRequestPermissions()
         }
         onDispose { }
@@ -129,10 +130,14 @@ fun PermissionHandler(
                     }
                 }
             )
-        } else {
-            // Show a placeholder or loading indicator while waiting for permissions
-            Text("Checking permissions...")
         }
+    }
+}
+
+
+fun checkPermissions(permissions: Array<String>, context: Context): Boolean {
+    return permissions.all {
+        ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
     }
 }
 

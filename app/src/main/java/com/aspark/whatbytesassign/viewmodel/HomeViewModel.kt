@@ -7,11 +7,8 @@ import com.aspark.whatbytesassign.MyApplication
 import com.aspark.whatbytesassign.model.Contact
 import com.aspark.whatbytesassign.repository.Repository
 import com.aspark.whatbytesassign.ui.UiState
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class HomeViewModel : ViewModel() {
@@ -29,8 +26,7 @@ class HomeViewModel : ViewModel() {
                 .collect { state ->
                     when (state) {
                         is UiState.Success -> addContactsToDevice(state.data)
-                        is UiState.Error -> {}
-                        UiState.Idle -> {}
+                        else -> {}
                     }
                 }
         }
@@ -45,6 +41,10 @@ class HomeViewModel : ViewModel() {
         contacts.forEach { contact ->
             if (repo.addContactToDevice(contact)) {
                 syncedContacts++
+                if (syncedContacts == totalContacts) {
+                    _uiState.value = UiState.Complete
+                    return
+                }
                 _uiState.value = UiState.Success(SyncProgress(syncedContacts, totalContacts))
             }
         }
