@@ -17,6 +17,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.aspark.whatbytesassign.ui.screen.HomeScreen
@@ -65,21 +67,21 @@ class MainActivity : ComponentActivity() {
 
                     if (checkPermissions(permissions, context))
                         HomeScreen(modifier = Modifier.padding(innerPadding))
+                    else
+                        PermissionHandler(
+                            permissions = permissions,
+                            rationale = "Contact permissions are needed to sync contacts.",
+                            onPermissionResult = { granted ->
+                                if (granted) {
+                                    Log.i("MainActivity", "onCreate: Permission Granted")
+                                } else {
+                                    Log.i("MainActivity", "onCreate: Permission Denied")
 
-                    PermissionHandler(
-                        permissions = permissions,
-                        rationale = "Contact permissions are needed to sync contacts.",
-                        onPermissionResult = { granted ->
-                            if (granted) {
-                                Log.i("MainActivity", "onCreate: Permission Granted")
-                            } else {
-                                Log.i("MainActivity", "onCreate: Permission Denied")
-
+                                }
                             }
+                        ) {
+                            HomeScreen(modifier = Modifier.padding(innerPadding))
                         }
-                    ) {
-                        HomeScreen(modifier = Modifier.padding(innerPadding))
-                    }
                 }
             }
         }
@@ -103,6 +105,7 @@ fun PermissionHandler(
         val allGranted = permissionsMap.values.all { it }
         permissionsGranted = allGranted
         onPermissionResult(allGranted)
+        showRationale = true
     }
 
     fun checkAndRequestPermissions() {
@@ -128,6 +131,8 @@ fun PermissionHandler(
         Log.i("MainActivity", "PermissionHandler: granted")
         content()
     } else {
+        Log.i("MainActivity", "PermissionHandler: denied")
+
         if (showRationale) {
             AlertDialog(
                 onDismissRequest = { showRationale = false },
@@ -142,10 +147,14 @@ fun PermissionHandler(
                     }
                 },
                 dismissButton = {
-                    Button(onClick = { showRationale = false }) {
+                    OutlinedButton(onClick = { showRationale = false }) {
                         Text("Cancel")
                     }
-                }
+                },
+                properties = DialogProperties(
+                    dismissOnBackPress = false,
+                    dismissOnClickOutside = false
+                )
             )
         }
     }

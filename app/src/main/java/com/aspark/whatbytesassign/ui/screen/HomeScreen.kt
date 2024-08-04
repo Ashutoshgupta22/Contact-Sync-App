@@ -45,7 +45,7 @@ fun HomeScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Button(
-            onClick = { homeViewModel.syncContacts() },
+            onClick = homeViewModel::syncContacts,
             enabled = uiState !is UiState.Success,
         ) {
             Text(text = "Sync Contact")

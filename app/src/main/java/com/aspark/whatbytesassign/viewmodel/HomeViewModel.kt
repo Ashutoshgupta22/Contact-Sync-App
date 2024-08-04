@@ -56,5 +56,5 @@ data class SyncProgress(
     private val total: Int
 ) {
     val progress: Float
-        get() = if (total > 0) (synced.toFloat() / total * 100) else 0f
+        get() = if (total > 0) (synced.toFloat() / total) else 0f
 }
